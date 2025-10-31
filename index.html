@@ -17,8 +17,7 @@
   h1 { font-size:2rem; text-transform:uppercase; }
   h2 { font-size:1.5rem; margin-bottom:2rem; }
   .countdown-container { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; padding:1rem; }
-  .timer-card { background:#222; border-radius:12px; width:280px; overflow:hidden; text-align:center; transition: transform 0.3s, box-shadow 0.3s; border:2px solid transparent; position:relative; }
-  .timer-card.upcoming { border-color:#ffcc00; }
+  .timer-card { background:#222; border-radius:12px; width:280px; overflow:hidden; text-align:center; transition: transform 0.3s, box-shadow 0.3s; }
   .timer-card:hover { transform:scale(1.05); box-shadow:0 0 20px #ffcc00; }
   .timer-image { width:100%; height:160px; object-fit:cover; }
   .timer-title { font-size:1.2rem; font-weight:bold; margin:0.5rem 0; }
@@ -26,15 +25,6 @@
   .timer-buttons { display:flex; justify-content:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; }
   .timer-buttons a { background:#ffcc00; padding:0.5rem 1rem; font-weight:bold; border-radius:5px; text-decoration:none; color:#000; transition: background 0.3s; }
   .timer-buttons a:hover { background:#ffd633; }
-
-  #notification-bell { position:fixed; top:10px; right:10px; font-size:2rem; cursor:pointer; color:gray; z-index:100; }
-  .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:101; }
-  .modal-content { background:#222; padding:20px; border-radius:15px; max-width:400px; width:90%; color:#fff; }
-  .modal h2 { margin-top:0; text-align:center; }
-  .modal label { display:block; margin-top:10px; }
-  .close { float:right; cursor:pointer; font-size:1.5rem; }
-  input[type=number] { width:80px; padding:5px; margin-left:5px; border-radius:5px; border:none; }
-  button { margin-top:15px; padding:8px 15px; border:none; border-radius:5px; background:#ffcc00; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -44,49 +34,18 @@
 
 <div class="countdown-container" id="timers"></div>
 
-<div id="notification-bell">🔔</div>
-
-<div class="modal" id="notifModal">
-  <div class="modal-content">
-    <span class="close" id="closeNotifModal">&times;</span>
-    <h2>Notification Settings</h2>
-    <label>
-      Notify me <input type="number" id="notifMinutes" value="60" min="1"/> minutes before all events
-    </label>
-    <button id="saveNotif">Save Settings</button>
-  </div>
-</div>
-
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const timersContainer = document.getElementById('timers');
-  const bell = document.getElementById('notification-bell');
-  const modal = document.getElementById('notifModal');
-  const closeModal = document.getElementById('closeNotifModal');
-  const saveNotifBtn = document.getElementById('saveNotif');
-  const notifInput = document.getElementById('notifMinutes');
-
   let timers = [];
-  let notifEnabled = false;
-  let notifMinutes = parseInt(localStorage.getItem('notifMinutes')) || 60;
-  notifInput.value = notifMinutes;
 
-  // ---------------- Force reload if app opened as PWA ----------------
-  if(window.matchMedia('(display-mode: standalone)').matches) {
-    // optional: reload page once to ensure latest data
-    window.addEventListener('load', () => {
-      setTimeout(()=>location.reload(), 100); // small delay
-    });
-  }
-
-  // ---------------- Load timers from GitHub ----------------
+  // Force fresh fetch to prevent caching
   async function loadTimers() {
     try {
       const url = 'https://raw.githubusercontent.com/KT-55/fncountdowns/main/timers.json?t=' + new Date().getTime();
       const res = await fetch(url);
       if(!res.ok) throw new Error("Failed to fetch timers.json");
       timers = await res.json();
-      timers.forEach(t => t.notified = false);
       renderTimers();
     } catch(e) {
       timersContainer.innerHTML = "<p style='color:red;'>Failed to load timers.</p>";
@@ -107,11 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
     timers.forEach(timer=>{
       const card = document.createElement('div');
       card.className='timer-card';
-
-      const eventDate = mstDate(timer.date);
-      const now = new Date();
-      const diff = eventDate - now;
-      if(diff>0 && diff<24*60*60*1000) card.classList.add('upcoming');
 
       if(timer.image){
         const img = document.createElement('img');
@@ -145,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       function updateCountdown(){
         const now=new Date();
-        let diff=eventDate-now;
+        let diff = mstDate(timer.date) - now;
         if(diff<=0){countdown.textContent="LIVE!"; return;}
         const days=Math.floor(diff/(1000*60*60*24));
         const hours=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
@@ -159,47 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ---------------- Notification GUI ----------------
-  bell.addEventListener('click', async () => {
-    if(Notification.permission === 'default'){
-      const permission = await Notification.requestPermission();
-      if(permission !== 'granted') {
-        alert("Notifications blocked!");
-        return;
-      }
-    }
-    notifEnabled = true;
-    modal.style.display='flex';
-  });
-
-  closeModal.addEventListener('click', ()=>modal.style.display='none');
-  window.addEventListener('click', e=>{if(e.target===modal) modal.style.display='none';});
-
-  saveNotifBtn.addEventListener('click', ()=>{
-    notifMinutes = parseInt(notifInput.value);
-    localStorage.setItem('notifMinutes', notifMinutes);
-    modal.style.display='none';
-    bell.style.color='green';
-    timers.forEach(t => t.notified = false);
-  });
-
-  function checkNotifications(){
-    if(!notifEnabled || Notification.permission!=='granted') return;
-    const now=new Date();
-    timers.forEach(t=>{
-      const eventDate = mstDate(t.date);
-      const diffMinutes = (eventDate-now)/60000;
-      if(diffMinutes <= notifMinutes && diffMinutes>0 && !t.notified){
-        new Notification("Event Soon!", {body:`${t.title} starts in ${notifMinutes} minutes!`});
-        t.notified = true;
-      }
-    });
-  }
-
-  setInterval(checkNotifications,60*1000);
-
   loadTimers();
 });
 </script>
+
 </body>
 </html>
