@@ -9,13 +9,13 @@
 <link rel="apple-touch-icon" href="icon.png">
 
 <style>
-  body { font-family: 'Arial Black', Arial, sans-serif; background-color:#1a1a1a; color:#fff; margin:0; padding:0; }
+  body { font-family: 'Arial Black', Arial, sans-serif; background:#1a1a1a; color:#fff; margin:0; padding:0; }
   h1,h2 { text-align:center; margin:1rem 0; }
   h1 { font-size:2rem; text-transform:uppercase; }
   h2 { font-size:1.5rem; margin-bottom:2rem; }
   .countdown-container { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; padding:1rem; }
-  .timer-card { background:#222; border-radius:12px; width:280px; overflow:hidden; text-align:center; transition: transform 0.3s, box-shadow 0.3s; border: 2px solid transparent; }
-  .timer-card.upcoming { border-color: #ffcc00; } /* Highlight upcoming timers <24h */
+  .timer-card { background:#222; border-radius:12px; width:280px; overflow:hidden; text-align:center; transition: transform 0.3s, box-shadow 0.3s; border:2px solid transparent; position:relative; }
+  .timer-card.upcoming { border-color:#ffcc00; }
   .timer-card:hover { transform:scale(1.05); box-shadow:0 0 20px #ffcc00; }
   .timer-image { width:100%; height:160px; object-fit:cover; }
   .timer-title { font-size:1.2rem; font-weight:bold; margin:0.5rem 0; }
@@ -23,6 +23,17 @@
   .timer-buttons { display:flex; justify-content:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; }
   .timer-buttons a { background:#ffcc00; padding:0.5rem 1rem; font-weight:bold; border-radius:5px; text-decoration:none; color:#000; transition: background 0.3s; }
   .timer-buttons a:hover { background:#ffd633; }
+
+  /* Notification bell */
+  #notification-bell { position:fixed; top:10px; right:10px; font-size:2rem; cursor:pointer; color:gray; z-index:100; }
+
+  /* Notification modal */
+  .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:101; }
+  .modal-content { background:#222; padding:20px; border-radius:15px; max-width:400px; width:90%; color:#fff; }
+  .modal h2 { margin-top:0; text-align:center; }
+  .modal label { display:block; margin-top:10px; }
+  .close { float:right; cursor:pointer; font-size:1.5rem; }
+  input[type=number] { width:60px; padding:5px; margin-left:5px; border-radius:5px; border:none; }
 </style>
 </head>
 <body>
@@ -32,19 +43,48 @@
 
 <div class="countdown-container" id="timers"></div>
 
+<!-- Notification Bell -->
+<div id="notification-bell">🔔</div>
+
+<!-- Notification Settings Modal -->
+<div class="modal" id="notifModal">
+  <div class="modal-content">
+    <span class="close" id="closeNotifModal">&times;</span>
+    <h2>Notification Settings</h2>
+    <div id="notifSettings"></div>
+    <button id="saveNotif" style="margin-top:15px; padding:8px 15px; border:none; border-radius:5px; background:#ffcc00;">Save Settings</button>
+  </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
   const timersContainer = document.getElementById('timers');
+  const bell = document.getElementById('notification-bell');
+  const modal = document.getElementById('notifModal');
+  const closeModal = document.getElementById('closeNotifModal');
+  const notifSettingsDiv = document.getElementById('notifSettings');
+  const saveNotifBtn = document.getElementById('saveNotif');
+
   let timers = [];
 
+  // Load timers from GitHub
   async function loadTimers() {
     try {
       const url = 'https://raw.githubusercontent.com/KT-55/fncountdowns/main/timers.json';
       const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch timers.json from GitHub");
+      if(!res.ok) throw new Error("Failed to fetch timers.json");
       timers = await res.json();
+
+      // Load notification settings from localStorage
+      const savedSettings = JSON.parse(localStorage.getItem('notifSettings') || '{}');
+      timers.forEach((t,i)=> {
+        t.notifyMinutes = savedSettings[i]?.minutes || 60; // default 60 min
+        t.notifyEnabled = savedSettings[i]?.enabled || false;
+        t.notified = false; // prevent repeat
+      });
+
       renderTimers();
-    } catch (e) {
+    } catch(e) {
       timersContainer.innerHTML = "<p style='color:red;'>Failed to load timers.</p>";
       console.error(e);
     }
@@ -52,82 +92,136 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function mstDate(dateStr) {
     const date = new Date(dateStr);
-    const utc = date.getTime() + date.getTimezoneOffset() * 60000;
-    return new Date(utc - 7 * 60 * 60000);
+    const utc = date.getTime() + date.getTimezoneOffset()*60000;
+    return new Date(utc - 7*60*60000); // EST
   }
 
   function renderTimers() {
     timersContainer.innerHTML = '';
+    timers.sort((a,b)=>new Date(a.date)-new Date(b.date));
 
-    // Sort timers by soonest first
-    timers.sort((a,b) => new Date(a.date) - new Date(b.date));
-
-    timers.forEach(timer => {
+    timers.forEach((timer,i)=>{
       const card = document.createElement('div');
-      card.className = 'timer-card';
+      card.className='timer-card';
 
       const eventDate = mstDate(timer.date);
       const now = new Date();
       const diff = eventDate - now;
 
-      // Highlight if <24 hours remaining
-      if(diff > 0 && diff < 24*60*60*1000) {
-        card.classList.add('upcoming');
-      }
+      if(diff>0 && diff<24*60*60*1000) card.classList.add('upcoming');
 
-      if(timer.image) {
+      if(timer.image){
         const img = document.createElement('img');
-        img.src = timer.image;
-        img.className = 'timer-image';
+        img.src=timer.image;
+        img.className='timer-image';
         card.appendChild(img);
       }
 
       const title = document.createElement('div');
-      title.className = 'timer-title';
-      title.textContent = timer.title;
+      title.className='timer-title';
+      title.textContent=timer.title;
       card.appendChild(title);
 
       const countdown = document.createElement('div');
-      countdown.className = 'timer-countdown';
+      countdown.className='timer-countdown';
       card.appendChild(countdown);
 
       const buttons = document.createElement('div');
-      buttons.className = 'timer-buttons';
-      if(timer.buttons) {
-        timer.buttons.forEach(b => {
-          const link = document.createElement('a');
-          link.href = b.url;
-          link.target = "_blank";
-          link.textContent = b.label;
+      buttons.className='timer-buttons';
+      if(timer.buttons){
+        timer.buttons.forEach(b=>{
+          const link=document.createElement('a');
+          link.href=b.url;
+          link.target="_blank";
+          link.textContent=b.label;
           buttons.appendChild(link);
         });
       }
       card.appendChild(buttons);
-
       timersContainer.appendChild(card);
 
-      function updateCountdown() {
-        const now = new Date();
-        let diff = eventDate - now;
-        if(diff <= 0) {
-          countdown.textContent = "LIVE!";
-          clearInterval(interval);
-          return;
-        }
-        const days = Math.floor(diff / (1000*60*60*24));
-        const hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
-        const minutes = Math.floor((diff % (1000*60*60)) / (1000*60));
-        const seconds = Math.floor((diff % (1000*60)) / 1000);
-        countdown.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      function updateCountdown(){
+        const now=new Date();
+        let diff=eventDate-now;
+        if(diff<=0){countdown.textContent="LIVE!"; clearInterval(interval); return;}
+        const days=Math.floor(diff/(1000*60*60*24));
+        const hours=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+        const minutes=Math.floor((diff%(1000*60*60))/(1000*60));
+        const seconds=Math.floor((diff%(1000*60))/1000);
+        countdown.textContent=`${days}d ${hours}h ${minutes}m ${seconds}s`;
       }
 
       updateCountdown();
-      const interval = setInterval(updateCountdown, 1000);
+      setInterval(updateCountdown,1000);
     });
   }
+
+  // ---------------- Notifications ----------------
+  function updateNotifBellColor() {
+    const enabled = timers.some(t=>t.notifyEnabled);
+    bell.style.color = enabled ? 'green' : 'red';
+  }
+
+  bell.addEventListener('click', () => {
+    modal.style.display='flex';
+    renderNotifSettings();
+  });
+
+  closeModal.addEventListener('click', ()=>modal.style.display='none');
+  window.addEventListener('click',(e)=>{if(e.target===modal) modal.style.display='none';});
+
+  function renderNotifSettings() {
+    notifSettingsDiv.innerHTML='';
+    timers.forEach((t,i)=>{
+      const div=document.createElement('div');
+      div.style.margin='8px 0';
+      div.innerHTML=`<label>
+        <input type="checkbox" data-index="${i}" ${t.notifyEnabled?'checked':''}/> Enable
+        ${t.title} notification
+        <input type="number" min="1" data-index="${i}" value="${t.notifyMinutes}"/> minutes before
+      </label>`;
+      notifSettingsDiv.appendChild(div);
+    });
+  }
+
+  saveNotifBtn.addEventListener('click', ()=>{
+    const checkboxes = notifSettingsDiv.querySelectorAll('input[type=checkbox]');
+    const numbers = notifSettingsDiv.querySelectorAll('input[type=number]');
+    checkboxes.forEach(cb=>{
+      const idx=parseInt(cb.dataset.index);
+      timers[idx].notifyEnabled=cb.checked;
+    });
+    numbers.forEach(n=>{
+      const idx=parseInt(n.dataset.index);
+      timers[idx].notifyMinutes=parseInt(n.value);
+    });
+    localStorage.setItem('notifSettings', JSON.stringify(timers.map(t=>({enabled:t.notifyEnabled, minutes:t.notifyMinutes}))));
+    modal.style.display='none';
+    updateNotifBellColor();
+  });
+
+  function checkTimersForNotifications() {
+    const now = new Date();
+    timers.forEach(t=>{
+      if(t.notifyEnabled && !t.notified){
+        const eventDate = mstDate(t.date);
+        const diff = (eventDate-now)/60000; // in minutes
+        if(diff <= t.notifyMinutes && diff>0){
+          if(Notification.permission==='granted') new Notification('Event Soon!', {body:`${t.title} starts in ${t.notifyMinutes} minutes!`});
+          t.notified=true;
+        }
+      }
+    });
+  }
+
+  // Ask permission on first visit
+  if(Notification.permission==='default') Notification.requestPermission();
+
+  setInterval(checkTimersForNotifications,60*1000);
 
   loadTimers();
 });
 </script>
+
 </body>
 </html>
