@@ -1,8 +1,13 @@
 [
   {
     "title": "Simpsons Event",
-    "date": "2025-11-01",
+    "date": "2025-11-01T00:00:00",
     "image": "https://cdn.mos.cms.futurecdn.net/efZQvEMgpUwCkBoVbe7oZg.jpg",
-    "buttons": []
+    "buttons": [
+      {
+        "label": "Teaser",
+        "url": "https://www.youtube.com/watch?v=xbhFbEv0NNs"
+      }
+    ]
   }
 ]
