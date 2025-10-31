@@ -1,693 +1,186 @@
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dream Journal</title>
-
-<!-- App icon: 🛏️ emoji on blue background -->
-<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,
-<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'>
-  <rect width='100%' height='100%' fill='%230072ff'/>
-  <text x='50%' y='50%' font-size='120' text-anchor='middle' dominant-baseline='central'>🛏️</text>
-</svg>">
-
-<style>
-  body {
-    font-family: "Segoe UI", Roboto, sans-serif;
-    background-color: #121212;
-    color: #eee;
-    margin: 0;
-    padding: 0;
-  }
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dream Journal</title>
+<title>Fortnite Event Countdown</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon.png">
+
 <style>
-  body {
-    font-family: "Segoe UI", Roboto, sans-serif;
-    background-color: #121212;
-    color: #eee;
-    margin: 0;
-    padding: 0;
-  }
-
-  header {
-    padding: 1rem;
-    text-align: center;
-    background: #1e1e1e;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.6);
-  }
-
-  header h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: #00c6ff;
-  }
-
-  main {
-    padding: 1rem;
-    max-width: 700px;
-    margin: auto;
-    transition: filter 0.3s ease;
-  }
-
-  .blurred { filter: blur(5px); }
-
-  .controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-  }
-
-  input[type="text"], select, textarea {
-    flex: 1;
-    padding: 0.6rem;
-    border-radius: 8px;
-    border: none;
-    background: #2a2a2a;
-    color: #eee;
-    font-size: 1rem;
-    resize: none;
-  }
-
-  select { flex: unset; }
-
-  .card {
-    background: #1e1e1e;
-    border-radius: 12px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.7);
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .card:hover { background: #242424; }
-
-  .card h3 { margin: 0; font-size: 1rem; color: #00c6ff; }
-
-  .tags { margin-top: 0.5rem; }
-  .tag {
-    display: inline-block;
-    background: #333;
-    color: #00c6ff;
-    padding: 0.2rem 0.6rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    margin-right: 0.3rem;
-  }
-
-  #addBtn, #settingsBtn, #importExportBtn {
-    position: fixed;
-    background: linear-gradient(45deg, #00c6ff, #0072ff);
-    border: none;
-    border-radius: 50%;
-    font-size: 1.5rem;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    z-index: 101;
-  }
-
-  #addBtn { bottom: 20px; right: 20px; width: 60px; height: 60px; font-size: 2rem; }
-  #settingsBtn { top: 20px; right: 20px; width: 50px; height: 50px; }
-  #importExportBtn { top: 20px; left: 20px; width: 50px; height: 50px; }
-
-  /* Modal */
-  .modal {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 200;
-  }
-
-  .modal.active { display: flex; }
-
-  .modalContent {
-    background: #1e1e1e;
-    padding: 1.5rem;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.8);
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    text-align: center;
-  }
-
-  button {
-    padding: 0.8rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 0.5rem;
-  }
-
-  button.action { background: linear-gradient(45deg, #00c6ff, #0072ff); color: #fff; }
-  button.delete { background: #ff4b4b; color: #fff; }
-  button.cancel { background: #555; color: #fff; }
+  body { font-family: 'Arial Black', Arial, sans-serif; background-color:#1a1a1a; color:#fff; margin:0; padding:0; }
+  h1,h2 { text-align:center; margin:1rem 0; }
+  h1 { font-size:2rem; text-transform:uppercase; }
+  h2 { font-size:1.5rem; margin-bottom:2rem; }
+  .countdown-container { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; padding:1rem; }
+  .timer-card { background:#222; border-radius:12px; width:280px; overflow:hidden; text-align:center; transition: transform 0.3s, box-shadow 0.3s; }
+  .timer-card:hover { transform:scale(1.05); box-shadow:0 0 20px #ffcc00; }
+  .timer-image { width:100%; height:160px; object-fit:cover; }
+  .timer-title { font-size:1.2rem; font-weight:bold; margin:0.5rem 0; }
+  .timer-countdown { font-size:1.2rem; margin-bottom:0.5rem; }
+  .timer-buttons { display:flex; justify-content:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; }
+  .timer-buttons a { background:#ffcc00; padding:0.5rem 1rem; font-weight:bold; border-radius:5px; text-decoration:none; color:#000; transition: background 0.3s; }
+  .timer-buttons a:hover { background:#ffd633; }
+  .add-timer { display:block; margin:2rem auto; padding:0.5rem 1rem; font-size:1rem; border:none; border-radius:10px; cursor:pointer; background:#ff4a4a; color:#fff; transition: background 0.3s; }
+  .add-timer:hover { background:#ff7676; }
+  input, select { width:100%; margin-bottom:0.5rem; padding:0.5rem; border-radius:8px; border:none; }
+  .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:10; }
+  .modal-content { background:#222; padding:2rem; border-radius:15px; max-width:400px; width:90%; }
+  .close { float:right; cursor:pointer; font-size:1.2rem; }
+  .button-row { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.5rem; }
 </style>
 </head>
 <body>
-<!-- Bulk Import/Export Modal -->
-<div class="modal" id="bulkModal">
-  <div class="modalContent">
-    <h2>Bulk Import / Export</h2>
-    <button class="action" id="exportAllBtn">Export All Dreams</button>
-    <textarea id="importTextArea" rows="8" placeholder="Paste your dreams JSON here..."></textarea>
-    <button class="action" id="importAllBtn">Import Dreams</button>
-    <button class="cancel" id="cancelBulkBtn">Close</button>
+
+<h1>Previous Fortnite Seasons</h1>
+<h2>Chapter 6</h2>
+
+<div class="countdown-container" id="timers"></div>
+<button class="add-timer" id="openModal">Add Timer</button>
+
+<div class="modal" id="timerModal">
+  <div class="modal-content">
+    <span class="close" id="closeModal">&times;</span>
+    <h2>Add New Event</h2>
+    <input type="text" id="eventTitle" placeholder="Event Title">
+    <input type="datetime-local" id="eventDate">
+    <input type="text" id="eventImage" placeholder="Image URL (optional)">
+    <h3>Optional Buttons</h3>
+    <div id="buttonContainer"></div>
+    <button id="addButton">Add Button</button>
+    <button id="saveTimer">Save Timer</button>
   </div>
 </div>
-
-<header>
-  <h1>🌙 Dream Journal</h1>
-</header>
-
-<button id="importExportBtn">⇅</button>
-<button id="settingsBtn">⚙️</button>
-
-<main id="mainContent">
-  <div class="controls">
-    <input type="text" id="searchInput" placeholder="Search dreams...">
-    <select id="tagFilter"><option value="">Filter by tag</option></select>
-    <select id="sortSelect">
-      <option value="newest">Newest First</option>
-      <option value="oldest">Oldest First</option>
-      <option value="longest">Longest</option>
-      <option value="shortest">Shortest</option>
-    </select>
-  </div>
-  <div id="entries"></div>
-</main>
-
-<button id="addBtn">+</button>
-
-<!-- Add/Edit Dream Modal -->
-<div class="modal" id="dreamModal">
-  <div class="modalContent">
-    <h2 id="modalTitle">Add Dream</h2>
-    <input type="text" id="dreamName" placeholder="Dream Name">
-    <textarea id="dreamText" rows="8" placeholder="Write your dream..."></textarea>
-    <input type="text" id="dreamTags" placeholder="Tags (comma separated)">
-    <button class="action" id="saveDreamBtn">Save</button>
-    <button class="cancel" id="cancelDreamBtn">Cancel</button>
-  </div>
-</div>
-
-<!-- Delete Modal -->
-<div class="modal" id="deleteModal">
-  <div class="modalContent">
-    <p>Are you sure you want to delete this dream?</p>
-    <button class="delete" id="confirmDeleteBtn">Delete</button>
-    <button class="cancel" id="cancelDeleteBtn">Cancel</button>
-  </div>
-</div>
-
-<!-- Settings Modal -->
-<div class="modal" id="settingsModal">
-  <div class="modalContent">
-    <h2>Settings</h2>
-    <button class="delete" id="deleteAllBtn">Delete All Dreams</button>
-    <button class="action" id="removeDuplicatesBtn">Remove Duplicates</button>
-    <button class="cancel" id="cancelSettingsBtn">Close</button>
-  </div>
-</div>
-
-<!-- Import/Export Modal -->
-<div class="modal" id="importExportModal">
-  <div class="modalContent">
-    <h2>Import / Export</h2>
-    <input type="file" id="importFile" accept=".csv,.zip">
-    <button class="action" id="exportBtn">Export Dreams (CSV)</button>
-    <button class="cancel" id="cancelImportExportBtn">Close</button>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <script>
-let dreams = JSON.parse(localStorage.getItem("dreams")) || [];
-let deleteIndex = null; // index in original `dreams` array
-let editIndex = null;   // index in original `dreams` array
-document.getElementById("exportAllBtn").onclick = async () => {
-  try {
-    const dataStr = JSON.stringify(dreams);
-    await navigator.clipboard.writeText(dataStr);
-    alert("All dreams copied to clipboard!");
-  } catch(err) {
-    alert("Failed to copy dreams: " + err);
-  }
-};
-document.getElementById("importAllBtn").onclick = () => {
-  const dataStr = document.getElementById("importTextArea").value;
-  try {
-    const imported = JSON.parse(dataStr);
-    if (!Array.isArray(imported)) throw "Invalid format";
-    dreams = imported;
-    localStorage.setItem("dreams", JSON.stringify(dreams));
-    renderDreams();
-    closeModal("bulkModal");
-    alert("Dreams imported successfully!");
-  } catch(err) {
-    alert("Failed to import dreams: " + err);
-  }
-};
+document.addEventListener('DOMContentLoaded', async () => {
+  const modal = document.getElementById('timerModal');
+  const openModalBtn = document.getElementById('openModal');
+  const closeModalBtn = document.getElementById('closeModal');
+  const saveTimerBtn = document.getElementById('saveTimer');
+  const addButtonBtn = document.getElementById('addButton');
+  const timersContainer = document.getElementById('timers');
+  const buttonContainer = document.getElementById('buttonContainer');
 
-document.getElementById("cancelBulkBtn").onclick = () => closeModal("bulkModal");
+  let timers = [];
 
-// Create a floating button to open bulk modal
-const bulkBtn = document.createElement("button");
-bulkBtn.textContent = "📦";
-bulkBtn.title = "Bulk Import/Export";
-bulkBtn.style.position = "fixed";
-bulkBtn.style.bottom = "20px";
-bulkBtn.style.left = "20px";
-bulkBtn.style.zIndex = "101";
-bulkBtn.style.background = "linear-gradient(45deg,#00c6ff,#0072ff)";
-bulkBtn.style.border = "none";
-bulkBtn.style.borderRadius = "50%";
-bulkBtn.style.width = "60px";
-bulkBtn.style.height = "60px";
-bulkBtn.style.color = "#fff";
-bulkBtn.style.fontSize = "2rem";
-bulkBtn.style.cursor = "pointer";
-bulkBtn.onclick = () => openModal("bulkModal");
-document.body.appendChild(bulkBtn);
-
-
-// Helpers
-const mainContent = document.getElementById("mainContent");
-const openModal = id => {
-  document.getElementById(id).classList.add("active");
-  mainContent.classList.add("blurred");
-};
-const closeModal = id => {
-  document.getElementById(id).classList.remove("active");
-  mainContent.classList.remove("blurred");
-  if(id === "dreamModal") resetDreamForm();
-};
-function resetDreamForm(){
-  document.getElementById("dreamName").value = "";
-  document.getElementById("dreamText").value = "";
-  document.getElementById("dreamTags").value = "";
-  editIndex = null;
-  document.getElementById("modalTitle").textContent = "Add Dream";
-}
-
-// Save Dream (preserve date on edit)
-function saveDream(){
-  const name = document.getElementById("dreamName").value.trim();
-  const text = document.getElementById("dreamText").value.trim();
-  const tagsRaw = document.getElementById("dreamTags").value.trim();
-  if(!name || !text) return alert("Name and dream text required!");
-  const nowFormatted = new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
-  const tagsArr = tagsRaw ? tagsRaw.split(",").map(t=>t.trim()).filter(Boolean) : [];
-
-  if(editIndex !== null && Number.isInteger(editIndex) && editIndex >= 0 && editIndex < dreams.length){
-    // Preserve existing date if present
-    const existingDate = dreams[editIndex]?.date || nowFormatted;
-    const dreamData = { name, text, tags: tagsArr, date: existingDate };
-    dreams[editIndex] = dreamData;
-  } else {
-    const dreamData = { name, text, tags: tagsArr, date: nowFormatted };
-    dreams.unshift(dreamData);
+  // Fetch timers from GitHub JSON
+  async function loadTimers() {
+    const res = await fetch('timers.json');
+    timers = await res.json();
+    renderTimers();
   }
 
-  localStorage.setItem("dreams",JSON.stringify(dreams));
-  closeModal("dreamModal");
-  renderDreams();
-}
-
-// Render (defensive with tags type) with sorting and correct index mapping
-function renderDreams(){
-  const entriesDiv=document.getElementById("entries");
-  entriesDiv.innerHTML="";
-  const search=(document.getElementById("searchInput").value||"").toLowerCase();
-  const tagFilter=document.getElementById("tagFilter").value;
-  const sortBy = document.getElementById("sortSelect").value || "newest";
-  const allTags=new Set();
-
-  // collect tags from all dreams (so filter select shows full set)
-  for(let i=0;i<dreams.length;i++){
-    const d = dreams[i];
-    const tagsArray = Array.isArray(d.tags) ? d.tags : (d.tags ? String(d.tags).split(",").map(t=>t.trim()).filter(Boolean) : []);
-    tagsArray.forEach(t=>allTags.add(t));
+  function mstDate(dateStr) {
+    let date = new Date(dateStr);
+    let utc = date.getTime() + date.getTimezoneOffset() * 60000;
+    return new Date(utc - 7 * 60 * 60000);
   }
 
-  // Build filtered list with reference to original index
-  const filteredWithIndex = [];
-  for(let i=0;i<dreams.length;i++){
-    const d = dreams[i];
-    const tagsArray = Array.isArray(d.tags) ? d.tags : (d.tags ? String(d.tags).split(",").map(t=>t.trim()).filter(Boolean) : []);
-    const textParts = [d.name||"", d.text||"", d.date||""].map(s=>String(s).toLowerCase());
-    if(search && !textParts.some(s=>s.includes(search))) continue;
-    if(tagFilter && !tagsArray.includes(tagFilter)) continue;
-    filteredWithIndex.push({ d, origIndex: i });
-  }
+  function renderTimers() {
+    timersContainer.innerHTML = '';
+    timers.forEach(timer => {
+      const card = document.createElement('div');
+      card.className = 'timer-card';
 
-  // Sort filtered list (compare using d properties)
-  filteredWithIndex.sort((a,b)=>{
-    const da = new Date(a.d.date);
-    const db = new Date(b.d.date);
-    switch(sortBy){
-      case "newest":
-        if(!isNaN(db) && !isNaN(da)) return db - da;
-        if(!isNaN(db)) return 1;
-        if(!isNaN(da)) return -1;
-        return 0;
-      case "oldest":
-        if(!isNaN(da) && !isNaN(db)) return da - db;
-        if(!isNaN(da)) return -1;
-        if(!isNaN(db)) return 1;
-        return 0;
-      case "longest":
-        return (b.d.text?.length||0) - (a.d.text?.length||0);
-      case "shortest":
-        return (a.d.text?.length||0) - (b.d.text?.length||0);
-      default:
-        return 0;
-    }
-  });
-
-  // Render cards using original indices for delete/edit actions
-  filteredWithIndex.forEach(item=>{
-    const d = item.d;
-    const origIndex = item.origIndex;
-    const tagsArray = Array.isArray(d.tags) ? d.tags : (d.tags ? String(d.tags).split(",").map(t=>t.trim()).filter(Boolean) : []);
-    const card=document.createElement("div");
-    card.className="card";
-    card.innerHTML=`
-      <h3>${d.date||""} — ${d.name||"Untitled Dream"}</h3>
-      <div class="tags">${tagsArray.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
-      <div class="details" style="display:none;">
-        <p>${(d.text||"").replace(/\n/g,"<br>")}</p>
-        <button class="action edit">Edit</button>
-        <button class="delete">Delete</button>
-      </div>`;
-    card.onclick=e=>{
-      const details=card.querySelector(".details");
-      if(e.target.classList.contains("delete")){
-        e.stopPropagation();
-        // use the original index in the main dreams array
-        deleteIndex = origIndex;
-        openModal("deleteModal");
-      } else if(e.target.classList.contains("edit")){
-        e.stopPropagation();
-        // set editIndex to original array index so saveDream updates correct item
-        editIndex = origIndex;
-        document.getElementById("dreamName").value=d.name||"";
-        document.getElementById("dreamText").value=d.text||"";
-        document.getElementById("dreamTags").value=tagsArray.join(", ");
-        document.getElementById("modalTitle").textContent="Edit Dream";
-        openModal("dreamModal");
-      } else { details.style.display=details.style.display==="block"?"none":"block"; }
-    };
-    entriesDiv.appendChild(card);
-  });
-
-  const tagSelect=document.getElementById("tagFilter");
-  tagSelect.innerHTML='<option value="">Filter by tag</option>';
-  Array.from(allTags).sort().forEach(t=>{
-    const opt=document.createElement("option"); opt.value=t; opt.textContent=t; tagSelect.appendChild(opt);
-  });
-}
-
-/* ---------- Robust CSV Parser ---------- */
-function parseCSV(text) {
-  const rows = [];
-  let row = [];
-  let field = "";
-  let i = 0;
-  let inQuotes = false;
-
-  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-
-  while (i < text.length) {
-    const char = text[i];
-    if (inQuotes) {
-      if (char === '"') {
-        if (i + 1 < text.length && text[i + 1] === '"') { field += '"'; i += 2; continue; }
-        inQuotes = false; i++; continue;
+      if(timer.image) {
+        const img = document.createElement('img');
+        img.src = timer.image;
+        img.className = 'timer-image';
+        card.appendChild(img);
       }
-      field += char; i++; continue;
-    } else {
-      if (char === '"') { inQuotes = true; i++; continue; }
-      if (char === ',') { row.push(field); field = ""; i++; continue; }
-      if (char === '\r') { row.push(field); field = ""; rows.push(row); row = []; i++; if(i<text.length && text[i]==='\n') i++; continue; }
-      if (char === '\n') { row.push(field); field = ""; rows.push(row); row = []; i++; continue; }
-      field += char; i++;
-    }
-  }
-  row.push(field);
-  rows.push(row);
-  return rows.filter(r => r.some(c => String(c).trim() !== ""));
-}
 
-/* ---------- Auto-detect Import ---------- */
-document.getElementById("importFile").addEventListener("change", function(e){
-  const file = e.target.files[0];
-  if(!file) return;
+      const title = document.createElement('div');
+      title.className = 'timer-title';
+      title.textContent = timer.title;
+      card.appendChild(title);
 
-  if(file.name.toLowerCase().endsWith(".csv")){
-    // Oniri CSV import
-    const reader = new FileReader();
-    reader.onload = function(ev){
-      const rows = parseCSV(String(ev.target.result || ""));
-      if (!rows.length) { alert("CSV appears empty."); return; }
-      const normalize = s => String(s || "").replace(/^\uFEFF/,"").trim().toLowerCase();
-      const header = rows[0].map(h => normalize(h));
-      const idx = {
-        date: header.indexOf("date"),
-        title: header.indexOf("title"),
-        story: header.indexOf("story") >= 0 ? header.indexOf("story") : header.indexOf("dream"),
-        control: header.indexOf("can control")
-      };
-      if (idx.date === -1 || idx.title === -1 || idx.story === -1) { alert("CSV is missing required columns: Date, Title, Story."); return; }
-      for (let r = 1; r < rows.length; r++) {
-        const cols = rows[r];
-        const rawDate = cols[idx.date] ?? "";
-        const rawTitle = cols[idx.title] ?? "";
-        const rawStory = cols[idx.story] ?? "";
-        const rawControl = idx.control !== -1 ? (cols[idx.control] ?? "") : "";
-        let dateStr;
-        const candidate = new Date(rawDate);
-        if (!isNaN(candidate)) { dateStr = candidate.toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" }); }
-        else { dateStr = String(rawDate).trim(); }
-        const name = String(rawTitle || "").trim() || "Untitled Dream";
-        const text = String(rawStory || "");
-        const tags = [];
-        if (String(rawControl).trim().toLowerCase() === "yes") tags.push("lucid");
-        const dreamData = { name, text, tags, date: dateStr };
-        dreams.unshift(dreamData);
+      const countdown = document.createElement('div');
+      countdown.className = 'timer-countdown';
+      card.appendChild(countdown);
+
+      const buttons = document.createElement('div');
+      buttons.className = 'timer-buttons';
+      if(timer.buttons) {
+        timer.buttons.forEach(b => {
+          const link = document.createElement('a');
+          link.href = b.url;
+          link.target = "_blank";
+          link.textContent = b.label;
+          buttons.appendChild(link);
+        });
       }
-      localStorage.setItem("dreams", JSON.stringify(dreams));
-      renderDreams();
-      alert("Oniri CSV dreams imported successfully!");
-    };
-    reader.readAsText(file);
-  } else if(file.name.toLowerCase().endsWith(".zip")){
-    // Apple Journal ZIP import
-    const reader = new FileReader();
-    reader.onload = async function(ev){
-      try {
-        const zip = await JSZip.loadAsync(ev.target.result);
-        const files = Object.keys(zip.files);
-        let imported = 0;
+      card.appendChild(buttons);
 
-        const getString = async (zf) => {
-          const ab = await zf.async("arraybuffer");
-          const u8 = new Uint8Array(ab);
-          if (u8[0] === 0xFF && u8[1] === 0xFE) return new TextDecoder("utf-16le").decode(u8);
-          if (u8[0] === 0xFE && u8[1] === 0xFF) return new TextDecoder("utf-16be").decode(u8);
-          return new TextDecoder("utf-8").decode(u8);
-        };
+      timersContainer.appendChild(card);
 
-        const formatDateSmart = (s) => {
-          if (!s) return "";
-          const d1 = new Date(s);
-          if (!isNaN(d1)) return d1.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
-          const m = String(s).match(/(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})/);
-          if (m) { const d2 = new Date(+m[1], +m[2]-1, +m[3]); if (!isNaN(d2)) return d2.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});}
-          const m2 = String(s).match(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2}),\s*(\d{4})/i);
-          if (m2) { const d3 = new Date(`${m2[1]} ${m2[2]}, ${m2[3]}`); if (!isNaN(d3)) return d3.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});}
-          return "";
-        };
-        const deriveDateFromString = (s) => formatDateSmart(s || "");
+      function updateCountdown() {
+        const now = new Date();
+        const eventDate = mstDate(timer.date);
+        let diff = eventDate - now;
 
-        // 1) Try manifest
-        const manifestName = files.find(n => /export\.json|manifest\.json|journalexport\.json/i.test(n));
-        if (manifestName) {
-          try {
-            const manifestText = await getString(zip.files[manifestName]);
-            const manifest = JSON.parse(manifestText);
-            const items = Array.isArray(manifest?.entries) ? manifest.entries
-                        : Array.isArray(manifest?.items) ? manifest.items
-                        : Array.isArray(manifest) ? manifest
-                        : [];
-            for (const it of items) {
-              const dateRaw = it.created || it.creationDate || it.date || it.createdAt || "";
-              const titleRaw = (it.title || "").trim();
-              let text = (it.text || it.content || "").trim();
-
-              if (!text) {
-                const path = it.path || it.filePath || it.relativePath || it.entryPath;
-                if (path && zip.files[path]) text = (await getString(zip.files[path])).trim();
-              }
-              if (!text) continue;
-
-              const dateStr = formatDateSmart(dateRaw) || deriveDateFromString(titleRaw) || "";
-              const name = titleRaw || text.split(/\n/).find(Boolean)?.slice(0,80) || "Untitled Dream";
-              dreams.unshift({ name, text, tags: [], date: dateStr || "" });
-              imported++;
-            }
-          } catch (e) { console.warn("Manifest present but could not be parsed:", e); }
+        if(diff <= 0) {
+          countdown.textContent = "LIVE!";
+          clearInterval(interval);
+          return;
         }
 
-        // Fallback: scan Entries/* for html/md/txt, ignore metadata files
-        if (imported === 0) {
-          const entryFiles = files
-            .filter(f => /(^|\/)entries\//i.test(f) && /\.(html?|md|markdown|txt)$/i.test(f))
-            .filter(f => !f.split("/").pop().startsWith("._")); // ignore metadata
+        let days = Math.floor(diff / (1000*60*60*24));
+        let hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+        let minutes = Math.floor((diff % (1000*60*60)) / (1000*60));
+        let seconds = Math.floor((diff % (1000*60)) / 1000);
 
-          for (const f of entryFiles) {
-            const content = await getString(zip.files[f]);
-            let title = "";
-            let dateStr = "";
-            let bodyText = "";
-
-            if (/\.(html?)$/i.test(f)) {
-              const doc = new DOMParser().parseFromString(content, "text/html");
-              const timeEl = doc.querySelector("time, header time");
-              const h1 = doc.querySelector("h1");
-              const h2 = doc.querySelector("h2");
-              dateStr = formatDateSmart(timeEl?.getAttribute("datetime") || timeEl?.textContent || "");
-              title = (h1?.textContent || h2?.textContent || "").trim();
-              bodyText = (doc.body?.innerText || "").replace(/\r\n?/g, "\n").trim();
-            } else {
-              const lines = content.split(/\r?\n/);
-              const nonEmpty = lines.map(s=>s.trimEnd()).filter(Boolean);
-              title = nonEmpty[0] && /^#\s+/.test(nonEmpty[0]) ? nonEmpty[0].replace(/^#\s+/, "") : (nonEmpty[0]||"");
-              dateStr = formatDateSmart(nonEmpty[1]) || deriveDateFromString(f);
-              bodyText = lines.join("\n").trim();
-            }
-
-            const fileBase = f.split("/").pop().replace(/^\._/, "").replace(/\.[^.]+$/, "");
-            const cleanedTitle = title || fileBase.replace(/^\d{4}-\d{2}-\d{2}_?/, "").replace(/_/g," ").trim() || "Untitled Dream";
-            if (!dateStr) dateStr = deriveDateFromString(fileBase) || "";
-
-            dreams.unshift({
-              name: cleanedTitle,
-              text: bodyText,
-              tags: [],
-              date: dateStr
-            });
-            imported++;
-          }
-        }
-
-        if (imported === 0) throw new Error("No recognizable entries found in ZIP.");
-        localStorage.setItem("dreams", JSON.stringify(dreams));
-        renderDreams();
-        alert(`Apple Journal: imported ${imported} entries.`);
-      } catch (err) {
-        console.error(err);
-        alert("Failed to import Apple Journal ZIP. Open the console for details.");
+        countdown.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
       }
-    };
-    reader.readAsArrayBuffer(file);
-  } else {
-    alert("Unsupported file type. Please select a .csv or .zip file.");
-  }
-});
 
-/* ---------- Export ---------- */
-document.getElementById("exportBtn").addEventListener("click",function(){
-  let csv="Date,Name,Text,Tags\n";
-  dreams.forEach(d=>{
-    const name = (d.name ?? "").replace(/"/g,'""');
-    const text = (d.text ?? "").replace(/"/g,'""');
-    const tags = (Array.isArray(d.tags)? d.tags.join(";") : String(d.tags||"")).replace(/"/g,'""');
-    const date = (d.date ?? "").replace(/"/g,'""');
-    csv+=`"${date}","${name}","${text}","${tags}"\n`;
+      updateCountdown();
+      const interval = setInterval(updateCountdown, 1000);
+    });
+  }
+
+  function clearButtonInputs() {
+    buttonContainer.innerHTML = '';
+  }
+
+  openModalBtn.addEventListener('click', () => {
+    modal.style.display = 'flex';
+    clearButtonInputs();
   });
-  const blob=new Blob([csv],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="dreams_export.csv";
-  a.click();
-  URL.revokeObjectURL(url);
+
+  closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
+  window.addEventListener('click', e => { if(e.target == modal) modal.style.display = 'none'; });
+
+  addButtonBtn.addEventListener('click', () => {
+    const row = document.createElement('div');
+    row.className = 'button-row';
+    row.innerHTML = `<input type="text" placeholder="Button Label"><input type="text" placeholder="Button URL">`;
+    buttonContainer.appendChild(row);
+  });
+
+  saveTimerBtn.addEventListener('click', () => {
+    const title = document.getElementById('eventTitle').value.trim();
+    const date = document.getElementById('eventDate').value;
+    const image = document.getElementById('eventImage').value.trim();
+    if(!title || !date) return alert('Title and Date are required!');
+
+    const buttons = Array.from(buttonContainer.children).map(row => {
+      const inputs = row.querySelectorAll('input');
+      return { label: inputs[0].value.trim(), url: inputs[1].value.trim() };
+    }).filter(b => b.label && b.url);
+
+    timers.push({title, date, image, buttons});
+    alert('Now use Python to update timers.json on GitHub!');
+    modal.style.display = 'none';
+    document.getElementById('eventTitle').value = '';
+    document.getElementById('eventDate').value = '';
+    document.getElementById('eventImage').value = '';
+    clearButtonInputs();
+    renderTimers();
+  });
+
+  loadTimers();
 });
-
-/* ---------- Events ---------- */
-document.getElementById("addBtn").onclick=()=>openModal("dreamModal");
-document.getElementById("saveDreamBtn").onclick=saveDream;
-document.getElementById("cancelDreamBtn").onclick=()=>closeModal("dreamModal");
-document.getElementById("confirmDeleteBtn").onclick=()=>{ 
-  if(deleteIndex!==null && Number.isInteger(deleteIndex) && deleteIndex >= 0 && deleteIndex < dreams.length){ 
-    dreams.splice(deleteIndex,1); 
-    localStorage.setItem("dreams",JSON.stringify(dreams)); 
-    deleteIndex=null; 
-    renderDreams(); 
-  } 
-  closeModal("deleteModal"); 
-};
-document.getElementById("cancelDeleteBtn").onclick=()=>closeModal("deleteModal");
-document.getElementById("searchInput").oninput=renderDreams;
-document.getElementById("tagFilter").onchange=renderDreams;
-document.getElementById("sortSelect").onchange=renderDreams;
-
-/* ---------- Settings ---------- */
-document.getElementById("settingsBtn").onclick=()=>openModal("settingsModal");
-document.getElementById("cancelSettingsBtn").onclick=()=>closeModal("settingsModal");
-document.getElementById("deleteAllBtn").onclick=()=>{ 
-  if(confirm("Delete ALL dreams? This cannot be undone.")){ 
-    dreams=[]; 
-    localStorage.setItem("dreams",JSON.stringify(dreams)); 
-    renderDreams(); 
-    closeModal("settingsModal"); 
-  } 
-};
-
-// Remove duplicates (keep first occurrence for each date)
-document.getElementById("removeDuplicatesBtn").onclick = () => {
-  if(!confirm("Remove duplicate dreams that share the same date? This will keep only the first occurrence for each date.")) return;
-  const seen = new Set();
-  const newDreams = [];
-  for (let i = 0; i < dreams.length; i++) {
-    const d = dreams[i];
-    if (!d.date) {
-      // keep dreams without a date
-      newDreams.push(d);
-    } else {
-      if (!seen.has(d.date)) {
-        seen.add(d.date);
-        newDreams.push(d);
-      } // else skip duplicate
-    }
-  }
-  dreams = newDreams;
-  localStorage.setItem("dreams", JSON.stringify(dreams));
-  renderDreams();
-  alert("Duplicates removed (by date).");
-};
-
-/* ---------- Import/Export ---------- */
-document.getElementById("importExportBtn").onclick=()=>openModal("importExportModal");
-document.getElementById("cancelImportExportBtn").onclick=()=>closeModal("importExportModal");
-
-/* ---------- Initial render ---------- */
-renderDreams();
 </script>
 </body>
 </html>
