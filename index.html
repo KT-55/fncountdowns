@@ -6,10 +6,13 @@
 <title>FN Countdowns</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <link rel="apple-touch-icon" href="icon.png">
 
 <style>
-  body { font-family: 'Arial Black', Arial, sans-serif; background:#1a1a1a; color:#fff; margin:0; padding:0; }
+  body { font-family:'Arial Black', Arial, sans-serif; background:#1a1a1a; color:#fff; margin:0; padding:0; }
   h1,h2 { text-align:center; margin:1rem 0; }
   h1 { font-size:2rem; text-transform:uppercase; }
   h2 { font-size:1.5rem; margin-bottom:2rem; }
@@ -41,10 +44,8 @@
 
 <div class="countdown-container" id="timers"></div>
 
-<!-- Notification Bell -->
 <div id="notification-bell">🔔</div>
 
-<!-- Notification Settings Modal -->
 <div class="modal" id="notifModal">
   <div class="modal-content">
     <span class="close" id="closeNotifModal">&times;</span>
@@ -57,7 +58,7 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   const timersContainer = document.getElementById('timers');
   const bell = document.getElementById('notification-bell');
   const modal = document.getElementById('notifModal');
@@ -68,15 +69,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   let timers = [];
   let notifEnabled = false;
   let notifMinutes = parseInt(localStorage.getItem('notifMinutes')) || 60;
-
   notifInput.value = notifMinutes;
 
-  // Fetch timers from GitHub
+  // ---------------- Force reload if app opened as PWA ----------------
+  if(window.matchMedia('(display-mode: standalone)').matches) {
+    // optional: reload page once to ensure latest data
+    window.addEventListener('load', () => {
+      setTimeout(()=>location.reload(), 100); // small delay
+    });
+  }
+
+  // ---------------- Load timers from GitHub ----------------
   async function loadTimers() {
     try {
-      const url = 'https://raw.githubusercontent.com/KT-55/fncountdowns/main/timers.json';
+      const url = 'https://raw.githubusercontent.com/KT-55/fncountdowns/main/timers.json?t=' + new Date().getTime();
       const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch timers.json");
+      if(!res.ok) throw new Error("Failed to fetch timers.json");
       timers = await res.json();
       timers.forEach(t => t.notified = false);
       renderTimers();
@@ -89,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function mstDate(dateStr) {
     const date = new Date(dateStr);
     const utc = date.getTime() + date.getTimezoneOffset()*60000;
-    return new Date(utc - 7*60*60000); // EST
+    return new Date(utc - 5*60*60000); // EST
   }
 
   function renderTimers() {
@@ -151,9 +159,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Notification modal behavior
+  // ---------------- Notification GUI ----------------
   bell.addEventListener('click', async () => {
-    // Request permission if not granted
     if(Notification.permission === 'default'){
       const permission = await Notification.requestPermission();
       if(permission !== 'granted') {
@@ -194,6 +201,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadTimers();
 });
 </script>
-
 </body>
 </html>
