@@ -12,19 +12,19 @@
 <link rel="apple-touch-icon" href="icon.png">
 
 <style>
-  body { font-family:'Arial Black', Arial, sans-serif; background:#1a1a1a; color:#fff; margin:0; padding:0; }
-  h1,h2 { text-align:center; margin:1rem 0; }
-  h1 { font-size:2rem; text-transform:uppercase; }
-  h2 { font-size:1.5rem; margin-bottom:2rem; }
-  .countdown-container { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; padding:1rem; }
-  .timer-card { background:#222; border-radius:12px; width:280px; overflow:hidden; text-align:center; transition: transform 0.3s, box-shadow 0.3s; }
-  .timer-card:hover { transform:scale(1.05); box-shadow:0 0 20px #ffcc00; }
-  .timer-image { width:100%; height:160px; object-fit:cover; }
-  .timer-title { font-size:1.2rem; font-weight:bold; margin:0.5rem 0; }
-  .timer-countdown { font-size:1.2rem; margin-bottom:0.5rem; }
-  .timer-buttons { display:flex; justify-content:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; }
-  .timer-buttons a { background:#ffcc00; padding:0.5rem 1rem; font-weight:bold; border-radius:5px; text-decoration:none; color:#000; transition: background 0.3s; }
-  .timer-buttons a:hover { background:#ffd633; }
+body { font-family:'Arial Black', Arial, sans-serif; background:#1a1a1a; color:#fff; margin:0; padding:0; }
+h1,h2 { text-align:center; margin:1rem 0; }
+h1 { font-size:2rem; text-transform:uppercase; }
+h2 { font-size:1.5rem; margin-bottom:2rem; }
+.countdown-container { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; padding:1rem; }
+.timer-card { background:#222; border-radius:12px; width:280px; overflow:hidden; text-align:center; transition: transform 0.3s, box-shadow 0.3s; }
+.timer-card:hover { transform:scale(1.05); box-shadow:0 0 20px #ffcc00; }
+.timer-image { width:100%; height:160px; object-fit:cover; }
+.timer-title { font-size:1.2rem; font-weight:bold; margin:0.5rem 0; }
+.timer-countdown { font-size:1.2rem; margin-bottom:0.5rem; }
+.timer-buttons { display:flex; justify-content:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; }
+.timer-buttons a { background:#ffcc00; padding:0.5rem 1rem; font-weight:bold; border-radius:5px; text-decoration:none; color:#000; transition: background 0.3s; }
+.timer-buttons a:hover { background:#ffd633; }
 </style>
 </head>
 <body>
@@ -38,20 +38,18 @@
 document.addEventListener('DOMContentLoaded', () => {
   const timersContainer = document.getElementById('timers');
   let timers = [];
-  let currentEST = null;
 
-  // Fetch current EST time from worldtimeapi.org
-  async function fetchEST() {
-    try {
-      const res = await fetch("https://worldtimeapi.org/api/timezone/America/New_York");
-      if(!res.ok) throw new Error("Failed to get EST time");
-      const data = await res.json();
-      currentEST = new Date(data.datetime);
-    } catch(e){
-      console.error(e);
-      // fallback to client time if API fails
-      currentEST = new Date(new Date().toISOString());
-    }
+  function toEST(dateStr) {
+    // Convert event date to EST (America/New_York)
+    const event = new Date(dateStr);
+    const estParts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      year:'numeric', month:'2-digit', day:'2-digit',
+      hour:'2-digit', minute:'2-digit', second:'2-digit',
+      hour12: false
+    }).formatToParts(event);
+
+    return new Date(`${estParts.find(p=>p.type==='year').value}-${estParts.find(p=>p.type==='month').value}-${estParts.find(p=>p.type==='day').value}T${estParts.find(p=>p.type==='hour').value}:${estParts.find(p=>p.type==='minute').value}:${estParts.find(p=>p.type==='second').value}`);
   }
 
   function renderTimers() {
@@ -94,9 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
       timersContainer.appendChild(card);
 
       function updateCountdown() {
-        if(!currentEST) return;
-        const eventTime = new Date(timer.date); // Event stored in EST
-        const diff = eventTime - currentEST;
+        const now = new Date();
+        const eventTime = toEST(timer.date);
+        const diff = eventTime - now;
         if(diff <= 0){
           countdown.textContent = "LIVE!";
           return;
@@ -108,18 +106,13 @@ document.addEventListener('DOMContentLoaded', () => {
         countdown.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
       }
 
-      // update every second
       updateCountdown();
-      setInterval(() => {
-        currentEST.setSeconds(currentEST.getSeconds() + 1);
-        updateCountdown();
-      }, 1000);
+      setInterval(updateCountdown,1000);
     });
   }
 
   async function loadTimers() {
     try {
-      await fetchEST(); // get updated EST
       const url = 'https://raw.githubusercontent.com/KT-55/fncountdowns/main/timers.json?t=' + new Date().getTime();
       const res = await fetch(url);
       if(!res.ok) throw new Error("Failed to fetch timers.json");
@@ -134,9 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initial load
   loadTimers();
-  // Refresh timers & EST every 5 seconds
   setInterval(loadTimers, 5000);
 });
 </script>
