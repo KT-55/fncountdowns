@@ -34,13 +34,13 @@
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
   const timersContainer = document.getElementById('timers');
-
   let timers = [];
 
-  // Fetch timers from JSON file
+  // Fetch timers from JSON file (no localStorage)
   async function loadTimers() {
     try {
       const res = await fetch('timers.json');
+      if (!res.ok) throw new Error("Failed to fetch timers.json");
       timers = await res.json();
       renderTimers();
     } catch (e) {
@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function mstDate(dateStr) {
-    let date = new Date(dateStr);
-    let utc = date.getTime() + date.getTimezoneOffset() * 60000;
+    const date = new Date(dateStr);
+    const utc = date.getTime() + date.getTimezoneOffset() * 60000;
     return new Date(utc - 7 * 60 * 60000);
   }
 
@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       timersContainer.appendChild(card);
 
+      // Countdown update
       function updateCountdown() {
         const now = new Date();
         const eventDate = mstDate(timer.date);
@@ -103,10 +104,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           return;
         }
 
-        let days = Math.floor(diff / (1000*60*60*24));
-        let hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
-        let minutes = Math.floor((diff % (1000*60*60)) / (1000*60));
-        let seconds = Math.floor((diff % (1000*60)) / 1000);
+        const days = Math.floor(diff / (1000*60*60*24));
+        const hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+        const minutes = Math.floor((diff % (1000*60*60)) / (1000*60));
+        const seconds = Math.floor((diff % (1000*60)) / 1000);
 
         countdown.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
       }
