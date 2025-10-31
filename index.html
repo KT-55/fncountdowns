@@ -12,19 +12,19 @@
 <link rel="apple-touch-icon" href="icon.png">
 
 <style>
-body { font-family:'Arial Black', Arial, sans-serif; background:#1a1a1a; color:#fff; margin:0; padding:0; }
-h1,h2 { text-align:center; margin:1rem 0; }
-h1 { font-size:2rem; text-transform:uppercase; }
-h2 { font-size:1.5rem; margin-bottom:2rem; }
-.countdown-container { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; padding:1rem; }
-.timer-card { background:#222; border-radius:12px; width:280px; overflow:hidden; text-align:center; transition: transform 0.3s, box-shadow 0.3s; }
-.timer-card:hover { transform:scale(1.05); box-shadow:0 0 20px #ffcc00; }
-.timer-image { width:100%; height:160px; object-fit:cover; }
-.timer-title { font-size:1.2rem; font-weight:bold; margin:0.5rem 0; }
-.timer-countdown { font-size:1.2rem; margin-bottom:0.5rem; }
-.timer-buttons { display:flex; justify-content:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; }
-.timer-buttons a { background:#ffcc00; padding:0.5rem 1rem; font-weight:bold; border-radius:5px; text-decoration:none; color:#000; transition: background 0.3s; }
-.timer-buttons a:hover { background:#ffd633; }
+  body { font-family:'Arial Black', Arial, sans-serif; background:#1a1a1a; color:#fff; margin:0; padding:0; }
+  h1,h2 { text-align:center; margin:1rem 0; }
+  h1 { font-size:2rem; text-transform:uppercase; }
+  h2 { font-size:1.5rem; margin-bottom:2rem; }
+  .countdown-container { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; padding:1rem; }
+  .timer-card { background:#222; border-radius:12px; width:280px; overflow:hidden; text-align:center; transition: transform 0.3s, box-shadow 0.3s; }
+  .timer-card:hover { transform:scale(1.05); box-shadow:0 0 20px #ffcc00; }
+  .timer-image { width:100%; height:160px; object-fit:cover; }
+  .timer-title { font-size:1.2rem; font-weight:bold; margin:0.5rem 0; }
+  .timer-countdown { font-size:1.2rem; margin-bottom:0.5rem; }
+  .timer-buttons { display:flex; justify-content:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; }
+  .timer-buttons a { background:#ffcc00; padding:0.5rem 1rem; font-weight:bold; border-radius:5px; text-decoration:none; color:#000; transition: background 0.3s; }
+  .timer-buttons a:hover { background:#ffd633; }
 </style>
 </head>
 <body>
@@ -39,71 +39,60 @@ document.addEventListener('DOMContentLoaded', () => {
   const timersContainer = document.getElementById('timers');
   let timers = [];
 
-  function toEST(dateStr) {
-    // Convert event date to EST (America/New_York)
-    const event = new Date(dateStr);
-    const estParts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/New_York',
-      year:'numeric', month:'2-digit', day:'2-digit',
-      hour:'2-digit', minute:'2-digit', second:'2-digit',
-      hour12: false
-    }).formatToParts(event);
-
-    return new Date(`${estParts.find(p=>p.type==='year').value}-${estParts.find(p=>p.type==='month').value}-${estParts.find(p=>p.type==='day').value}T${estParts.find(p=>p.type==='hour').value}:${estParts.find(p=>p.type==='minute').value}:${estParts.find(p=>p.type==='second').value}`);
+  // Parse timer date as fixed EST time from ISO string
+  function estDate(dateStr) {
+    // dateStr from JSON should include offset: e.g., "2025-12-11T15:30-05:00"
+    return new Date(dateStr);
   }
 
   function renderTimers() {
     timersContainer.innerHTML = '';
-    timers.sort((a,b) => new Date(a.date) - new Date(b.date));
+    // Sort by soonest
+    timers.sort((a,b)=>estDate(a.date)-estDate(b.date));
 
-    timers.forEach(timer => {
-      const card = document.createElement('div');
-      card.className = 'timer-card';
+    timers.forEach(timer=>{
+      const card=document.createElement('div');
+      card.className='timer-card';
 
       if(timer.image){
-        const img = document.createElement('img');
-        img.src = timer.image;
-        img.className = 'timer-image';
+        const img=document.createElement('img');
+        img.src=timer.image;
+        img.className='timer-image';
         card.appendChild(img);
       }
 
-      const title = document.createElement('div');
-      title.className = 'timer-title';
-      title.textContent = timer.title;
+      const title=document.createElement('div');
+      title.className='timer-title';
+      title.textContent=timer.title;
       card.appendChild(title);
 
-      const countdown = document.createElement('div');
-      countdown.className = 'timer-countdown';
+      const countdown=document.createElement('div');
+      countdown.className='timer-countdown';
       card.appendChild(countdown);
 
-      const buttons = document.createElement('div');
-      buttons.className = 'timer-buttons';
+      const buttons=document.createElement('div');
+      buttons.className='timer-buttons';
       if(timer.buttons){
         timer.buttons.forEach(b=>{
-          const link = document.createElement('a');
-          link.href = b.url;
+          const link=document.createElement('a');
+          link.href=b.url;
           link.target="_blank";
-          link.textContent = b.label;
+          link.textContent=b.label;
           buttons.appendChild(link);
         });
       }
       card.appendChild(buttons);
-
       timersContainer.appendChild(card);
 
-      function updateCountdown() {
-        const now = new Date();
-        const eventTime = toEST(timer.date);
-        const diff = eventTime - now;
-        if(diff <= 0){
-          countdown.textContent = "LIVE!";
-          return;
-        }
-        const days = Math.floor(diff/(1000*60*60*24));
-        const hours = Math.floor((diff%(1000*60*60*24))/(1000*60*60));
-        const minutes = Math.floor((diff%(1000*60*60))/(1000*60));
-        const seconds = Math.floor((diff%(1000*60))/1000);
-        countdown.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      function updateCountdown(){
+        const now=new Date();
+        let diff = estDate(timer.date) - now; // fixed EST
+        if(diff<=0){countdown.textContent="LIVE!"; return;}
+        const days=Math.floor(diff/(1000*60*60*24));
+        const hours=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+        const minutes=Math.floor((diff%(1000*60*60))/(1000*60));
+        const seconds=Math.floor((diff%(1000*60))/1000);
+        countdown.textContent=`${days}d ${hours}h ${minutes}m ${seconds}s`;
       }
 
       updateCountdown();
@@ -123,12 +112,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch(e){
       console.error("Failed to load timers:", e);
-      timersContainer.innerHTML = "<p style='color:red; text-align:center;'>Failed to load timers.</p>";
     }
   }
 
+  // Load immediately
   loadTimers();
-  setInterval(loadTimers, 5000);
+  // Refresh every 5 seconds
+  setInterval(loadTimers,5000);
 });
 </script>
 
