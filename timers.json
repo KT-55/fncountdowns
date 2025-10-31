@@ -1,0 +1,11 @@
+[
+  {
+    "title": "Chapter 6 Event",
+    "date": "2025-11-01T18:00",
+    "image": "https://example.com/image.jpg",
+    "buttons": [
+      {"label":"Trailer","url":"https://www.youtube.com/"},
+      {"label":"Battle Pass","url":"https://www.epicgames.com/fortnite/"}
+    ]
+  }
+]
