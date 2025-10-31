@@ -35,12 +35,14 @@
 <div class="countdown-container" id="timers"></div>
 
 <script>
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   const timersContainer = document.getElementById('timers');
   let timers = [];
 
-  // Force fresh fetch to prevent caching
+  // Function to fetch JSON fresh every load
   async function loadTimers() {
+    timersContainer.innerHTML = ''; // Clear old timers
+    timers = [];
     try {
       const url = 'https://raw.githubusercontent.com/KT-55/fncountdowns/main/timers.json?t=' + new Date().getTime();
       const res = await fetch(url);
@@ -60,7 +62,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderTimers() {
-    timersContainer.innerHTML = '';
     timers.sort((a,b)=>new Date(a.date)-new Date(b.date));
 
     timers.forEach(timer=>{
@@ -113,6 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // Always fetch fresh timers on page load
   loadTimers();
 });
 </script>
