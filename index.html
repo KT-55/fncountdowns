@@ -36,11 +36,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const timersContainer = document.getElementById('timers');
   let timers = [];
 
-  // Fetch timers from JSON file (no localStorage)
+  // Fetch timers directly from GitHub raw URL
   async function loadTimers() {
     try {
-      const res = await fetch('timers.json');
-      if (!res.ok) throw new Error("Failed to fetch timers.json");
+      const url = 'https://raw.githubusercontent.com/KT-55/fncountdowns/main/timers.json';
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch timers.json from GitHub");
       timers = await res.json();
       renderTimers();
     } catch (e) {
@@ -92,7 +93,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       timersContainer.appendChild(card);
 
-      // Countdown update
       function updateCountdown() {
         const now = new Date();
         const eventDate = mstDate(timer.date);
