@@ -39,10 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const timersContainer = document.getElementById('timers');
   let timers = [];
 
-  // Convert ISO datetime to EST/EDT automatically
+  // Convert ISO string from JSON to a Date in UTC, then subtract 5 hours to treat it as EST
   function estDate(dateStr) {
-    const date = new Date(dateStr);
-    return new Date(date.toLocaleString("en-US", { timeZone: "America/New_York" }));
+    const utcDate = new Date(dateStr);
+    // Treat as fixed EST (UTC-5) without converting to local timezone
+    return new Date(utcDate.getTime() - 5*60*60*1000);
   }
 
   function renderTimers() {
@@ -110,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(url);
       if(!res.ok) throw new Error("Failed to fetch timers.json");
       const newTimers = await res.json();
-      // Only re-render if timers changed
       if(JSON.stringify(newTimers) !== JSON.stringify(timers)){
         timers = newTimers;
         renderTimers();
@@ -121,9 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Load immediately
   loadTimers();
-  // Refresh every 5 seconds
   setInterval(loadTimers, 5000);
 });
 </script>
