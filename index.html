@@ -39,22 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const timersContainer = document.getElementById('timers');
   let timers = [];
 
-  // Function to fetch JSON fresh every load
-  async function loadTimers() {
-    timersContainer.innerHTML = ''; // Clear old timers
-    timers = [];
-    try {
-      const url = 'https://raw.githubusercontent.com/KT-55/fncountdowns/main/timers.json?t=' + new Date().getTime();
-      const res = await fetch(url);
-      if(!res.ok) throw new Error("Failed to fetch timers.json");
-      timers = await res.json();
-      renderTimers();
-    } catch(e) {
-      timersContainer.innerHTML = "<p style='color:red;'>Failed to load timers.</p>";
-      console.error(e);
-    }
-  }
-
   function mstDate(dateStr) {
     const date = new Date(dateStr);
     const utc = date.getTime() + date.getTimezoneOffset()*60000;
@@ -62,29 +46,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderTimers() {
+    timersContainer.innerHTML = '';
     timers.sort((a,b)=>new Date(a.date)-new Date(b.date));
 
     timers.forEach(timer=>{
-      const card = document.createElement('div');
+      const card=document.createElement('div');
       card.className='timer-card';
 
       if(timer.image){
-        const img = document.createElement('img');
+        const img=document.createElement('img');
         img.src=timer.image;
         img.className='timer-image';
         card.appendChild(img);
       }
 
-      const title = document.createElement('div');
+      const title=document.createElement('div');
       title.className='timer-title';
       title.textContent=timer.title;
       card.appendChild(title);
 
-      const countdown = document.createElement('div');
+      const countdown=document.createElement('div');
       countdown.className='timer-countdown';
       card.appendChild(countdown);
 
-      const buttons = document.createElement('div');
+      const buttons=document.createElement('div');
       buttons.className='timer-buttons';
       if(timer.buttons){
         timer.buttons.forEach(b=>{
@@ -114,8 +99,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Always fetch fresh timers on page load
+  async function loadTimers() {
+    try {
+      const url = 'https://raw.githubusercontent.com/KT-55/fncountdowns/main/timers.json?t=' + new Date().getTime();
+      const res = await fetch(url);
+      if(!res.ok) throw new Error("Failed to fetch timers.json");
+      const newTimers = await res.json();
+      // Only re-render if timers have changed
+      if(JSON.stringify(newTimers) !== JSON.stringify(timers)){
+        timers = newTimers;
+        renderTimers();
+      }
+    } catch(e){
+      console.error("Failed to load timers:", e);
+    }
+  }
+
+  // Load immediately
   loadTimers();
+  // Refresh every 5 seconds
+  setInterval(loadTimers, 5000);
 });
 </script>
 
