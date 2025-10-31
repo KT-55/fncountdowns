@@ -38,18 +38,25 @@
 document.addEventListener('DOMContentLoaded', () => {
   const timersContainer = document.getElementById('timers');
   let timers = [];
+  let currentEST = null;
 
-  // Convert ISO string from JSON to a Date in UTC, then subtract 5 hours to treat it as EST
-  function estDate(dateStr) {
-    const utcDate = new Date(dateStr);
-    // Treat as fixed EST (UTC-5) without converting to local timezone
-    return new Date(utcDate.getTime() - 5*60*60*1000);
+  // Fetch current EST time from worldtimeapi.org
+  async function fetchEST() {
+    try {
+      const res = await fetch("https://worldtimeapi.org/api/timezone/America/New_York");
+      if(!res.ok) throw new Error("Failed to get EST time");
+      const data = await res.json();
+      currentEST = new Date(data.datetime);
+    } catch(e){
+      console.error(e);
+      // fallback to client time if API fails
+      currentEST = new Date(new Date().toISOString());
+    }
   }
 
   function renderTimers() {
     timersContainer.innerHTML = '';
-    // Sort timers by soonest event
-    timers.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    timers.sort((a,b) => new Date(a.date) - new Date(b.date));
 
     timers.forEach(timer => {
       const card = document.createElement('div');
@@ -87,8 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
       timersContainer.appendChild(card);
 
       function updateCountdown() {
-        const now = new Date();
-        const diff = estDate(timer.date) - now;
+        if(!currentEST) return;
+        const eventTime = new Date(timer.date); // Event stored in EST
+        const diff = eventTime - currentEST;
         if(diff <= 0){
           countdown.textContent = "LIVE!";
           return;
@@ -100,13 +108,18 @@ document.addEventListener('DOMContentLoaded', () => {
         countdown.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
       }
 
+      // update every second
       updateCountdown();
-      setInterval(updateCountdown,1000);
+      setInterval(() => {
+        currentEST.setSeconds(currentEST.getSeconds() + 1);
+        updateCountdown();
+      }, 1000);
     });
   }
 
   async function loadTimers() {
     try {
+      await fetchEST(); // get updated EST
       const url = 'https://raw.githubusercontent.com/KT-55/fncountdowns/main/timers.json?t=' + new Date().getTime();
       const res = await fetch(url);
       if(!res.ok) throw new Error("Failed to fetch timers.json");
@@ -121,7 +134,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Initial load
   loadTimers();
+  // Refresh timers & EST every 5 seconds
   setInterval(loadTimers, 5000);
 });
 </script>
