@@ -1,16 +1,5 @@
 [
   {
-    "title": "Simpsons Event",
-    "date": "2025-11-01T15:00:00+00:00",
-    "image": "https://cdn.mos.cms.futurecdn.net/efZQvEMgpUwCkBoVbe7oZg.jpg",
-    "buttons": [
-      {
-        "label": "Teaser",
-        "url": "https://www.youtube.com/watch?v=xbhFbEv0NNs"
-      }
-    ]
-  },
-  {
     "title": "OG Season 7",
     "date": "2025-12-11T08:30:00+00:00",
     "image": "https://cdn2.unrealengine.com/Fortnite%2Fblog%2Ftake-to-the-skies-in-season-7%2FBR07_News_Featured_16_9-1920x1080-c8c58d82b2986bf9615c839d53bb7763c06895c5.jpg",
@@ -26,6 +15,12 @@
     "title": "Lego Pass",
     "date": "2025-12-11T08:30:00+00:00",
     "image": "https://cdn2.unrealengine.com/lego-fortnite-social-1920x1080-68be5a5756df.jpg",
+    "buttons": []
+  },
+  {
+    "title": "twest",
+    "date": "2025-11-02T18:30:00+00:00",
+    "image": "",
     "buttons": []
   }
 ]
