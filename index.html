@@ -39,16 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const timersContainer = document.getElementById('timers');
   let timers = [];
 
-  // Parse timer date as fixed EST time from ISO string
-  function estDate(dateStr) {
-    // dateStr from JSON should include offset: e.g., "2025-12-11T15:30-05:00"
-    return new Date(dateStr);
-  }
-
   function renderTimers() {
     timersContainer.innerHTML = '';
-    // Sort by soonest
-    timers.sort((a,b)=>estDate(a.date)-estDate(b.date));
+    timers.sort((a,b)=>new Date(a.date)-new Date(b.date));
 
     timers.forEach(timer=>{
       const card=document.createElement('div');
@@ -85,13 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
       timersContainer.appendChild(card);
 
       function updateCountdown(){
-        const now=new Date();
-        let diff = estDate(timer.date) - now; // fixed EST
-        if(diff<=0){countdown.textContent="LIVE!"; return;}
-        const days=Math.floor(diff/(1000*60*60*24));
-        const hours=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
-        const minutes=Math.floor((diff%(1000*60*60))/(1000*60));
-        const seconds=Math.floor((diff%(1000*60))/1000);
+        const now = new Date();
+        const target = new Date(timer.date); // UTC-based timestamp
+        const diff = target - now;
+        if(diff <= 0){countdown.textContent="LIVE!"; return;}
+        const days = Math.floor(diff/(1000*60*60*24));
+        const hours = Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+        const minutes = Math.floor((diff%(1000*60*60))/(1000*60));
+        const seconds = Math.floor((diff%(1000*60))/1000);
         countdown.textContent=`${days}d ${hours}h ${minutes}m ${seconds}s`;
       }
 
@@ -115,10 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Load immediately
   loadTimers();
-  // Refresh every 5 seconds
-  setInterval(loadTimers,5000);
+  setInterval(loadTimers, 5000);
 });
 </script>
 
