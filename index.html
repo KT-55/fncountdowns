@@ -1,43 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FN Countdowns</title>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
-<link rel="apple-touch-icon" href="icon.png">
-
-<style>
-  body { font-family:'Arial Black', Arial, sans-serif; background:#1a1a1a; color:#fff; margin:0; padding:0; }
-  h1,h2 { text-align:center; margin:1rem 0; }
-  h1 { font-size:2rem; text-transform:uppercase; }
-  h2 { font-size:1.5rem; margin-bottom:2rem; }
-  .countdown-container { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; padding:1rem; }
-  .timer-card { background:#222; border-radius:12px; width:280px; overflow:hidden; text-align:center; transition: transform 0.3s, box-shadow 0.3s; }
-  .timer-card:hover { transform:scale(1.05); box-shadow:0 0 20px #ffcc00; }
-  .timer-image { width:100%; height:160px; object-fit:cover; }
-  .timer-title { font-size:1.2rem; font-weight:bold; margin:0.5rem 0; }
-  .timer-countdown { font-size:1.2rem; margin-bottom:0.5rem; }
-  .timer-buttons { display:flex; justify-content:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; }
-  .timer-buttons a { background:#ffcc00; padding:0.5rem 1rem; font-weight:bold; border-radius:5px; text-decoration:none; color:#000; transition: background 0.3s; }
-  .timer-buttons a:hover { background:#ffd633; }
-</style>
-</head>
-<body>
-
-<h1>Current Events</h1>
-<h2>Chapter 6 Season 4</h2>
-
-<div class="countdown-container" id="timers"></div>
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const timersContainer = document.getElementById('timers');
   let timers = [];
+  let serverNowUTC = null;
+  let lastSync = null;
+
+  // Fetch accurate UTC from worldtimeapi.org
+  async function syncUTC() {
+    try {
+      const res = await fetch("https://worldtimeapi.org/api/timezone/Etc/UTC");
+      const data = await res.json();
+      serverNowUTC = new Date(data.utc_datetime);
+      lastSync = Date.now();
+      console.log("Synced UTC:", serverNowUTC);
+    } catch (e) {
+      console.warn("UTC sync failed, using local clock as fallback:", e);
+      serverNowUTC = new Date(); // fallback
+      lastSync = Date.now();
+    }
+  }
+
+  function getAccurateNowUTC() {
+    if (!serverNowUTC || !lastSync) return new Date();
+    const elapsed = Date.now() - lastSync;
+    return new Date(serverNowUTC.getTime() + elapsed);
+  }
 
   function renderTimers() {
     timersContainer.innerHTML = '';
@@ -78,8 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
       timersContainer.appendChild(card);
 
       function updateCountdown(){
-        const now = new Date();
-        const target = new Date(timer.date); // UTC-based timestamp
+        const now = getAccurateNowUTC(); // use synced UTC
+        const target = new Date(timer.date); // UTC-based
         const diff = target - now;
         if(diff <= 0){countdown.textContent="LIVE!"; return;}
         const days = Math.floor(diff/(1000*60*60*24));
@@ -109,10 +96,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  loadTimers();
-  setInterval(loadTimers, 5000);
+  // Run
+  (async ()=>{
+    await syncUTC();       // fetch accurate time once
+    await loadTimers();    // load events
+    setInterval(loadTimers, 5000);   // refresh timers.json
+    setInterval(syncUTC, 60000);     // re-sync UTC every 60s
+  })();
 });
 </script>
-
-</body>
-</html>
