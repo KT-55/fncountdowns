@@ -38,36 +38,36 @@
 document.addEventListener('DOMContentLoaded', () => {
   const timersContainer = document.getElementById('timers');
   let timers = [];
-  let serverNowUTC = null;
-  let lastSync = null;
 
-  // Fetch accurate UTC from worldtimeapi.org
+  // ---- Accurate UTC Clock ----
+  let baseServerUTC = null;   // Date object from server (accurate UTC)
+  let basePerfNow = null;     // performance.now() at time of sync
+
   async function syncUTC() {
     try {
       const res = await fetch("https://worldtimeapi.org/api/timezone/Etc/UTC", { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const utcStr = data.utc_datetime || data.datetime;
-      if (!utcStr) throw new Error("No utc_datetime in response");
-      serverNowUTC = new Date(utcStr);
-      lastSync = Date.now();
-      console.log("UTC sync success:", serverNowUTC.toISOString());
-    } catch (e) {
-      console.warn("UTC sync failed, falling back to local system clock:", e);
-      if (!serverNowUTC) {
-        // first sync failed, use system time
-        serverNowUTC = new Date();
-        lastSync = Date.now();
+      if (!utcStr) throw new Error("Invalid UTC response");
+      baseServerUTC = new Date(utcStr);
+      basePerfNow = performance.now();
+      console.log("✅ Synced to accurate UTC:", baseServerUTC.toISOString());
+    } catch (err) {
+      console.warn("⚠️ UTC sync failed, using fallback local UTC.");
+      if (!baseServerUTC) {
+        baseServerUTC = new Date();
+        basePerfNow = performance.now();
       }
     }
   }
 
   function getAccurateNowUTC() {
-    if (!serverNowUTC || !lastSync) return new Date();
-    const elapsed = Date.now() - lastSync;
-    return new Date(serverNowUTC.getTime() + elapsed);
+    if (!baseServerUTC || basePerfNow === null) return new Date();
+    const elapsed = performance.now() - basePerfNow; // milliseconds since last sync
+    return new Date(baseServerUTC.getTime() + elapsed);
   }
 
+  // ---- Render Timers ----
   function renderTimers() {
     timersContainer.innerHTML = '';
     timers.sort((a,b)=>new Date(a.date)-new Date(b.date));
@@ -106,11 +106,15 @@ document.addEventListener('DOMContentLoaded', () => {
       card.appendChild(buttons);
       timersContainer.appendChild(card);
 
+      // Live countdown update
       function updateCountdown(){
-        const now = getAccurateNowUTC(); // use synced UTC
-        const target = new Date(timer.date); // UTC-based
+        const now = getAccurateNowUTC(); // <-- true universal clock
+        const target = new Date(timer.date); // event time in UTC
         const diff = target - now;
-        if(diff <= 0){countdown.textContent="LIVE!"; return;}
+        if(diff <= 0){
+          countdown.textContent="LIVE!";
+          return;
+        }
         const days = Math.floor(diff/(1000*60*60*24));
         const hours = Math.floor((diff%(1000*60*60*24))/(1000*60*60));
         const minutes = Math.floor((diff%(1000*60*60))/(1000*60));
@@ -119,13 +123,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       updateCountdown();
-      setInterval(updateCountdown,1000);
+      setInterval(updateCountdown, 1000);
     });
   }
 
+  // ---- Load timers.json ----
   async function loadTimers() {
     try {
-      const url = 'https://raw.githubusercontent.com/KT-55/fncountdowns/main/timers.json?t=' + new Date().getTime();
+      const url = 'https://raw.githubusercontent.com/KT-55/fncountdowns/main/timers.json?t=' + Date.now();
       const res = await fetch(url);
       if(!res.ok) throw new Error("Failed to fetch timers.json");
       const newTimers = await res.json();
@@ -138,11 +143,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Run
+  // ---- Initialize ----
   (async ()=>{
-    await syncUTC();       // fetch accurate time once
-    await loadTimers();    // load events
-    setInterval(loadTimers, 5000);   // refresh timers.json every 5s
+    await syncUTC();       // get accurate server time
+    await loadTimers();    // fetch events
+    setInterval(loadTimers, 5000);   // refresh events every 5s
     setInterval(syncUTC, 60000);     // re-sync UTC every 60s
   })();
 });
